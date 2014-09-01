@@ -1,3 +1,12 @@
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="tmpl/css/style.css">
+    <script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+</head>
+
+<body>
+
 <div id="stepsContainer" style="float: left; width: 250px">
 <h2>Steps:</h2>
 </div>
@@ -21,16 +30,6 @@ function createXMLHttpRequest() {
 	return null;
 }
 
-var xhReq = createXMLHttpRequest();
-xhReq.open("get", "<?php echo Engine::getCurrentPage()->getComponentPath().DS.'run.php?user_input='.$_POST['user_input'] ?>", true);
-xhReq.onreadystatechange = function() {
-	if (xhReq.readyState != 4)  { return; }
-	var serverResponse = xhReq.responseText;
-	console.log(serverResponse);
-	eval(serverResponse);
-};
-xhReq.send(null);
-
 
 
 
@@ -41,3 +40,6 @@ function activateStep(id) {
 	$("#data" + id).show();
 }
 </script>
+
+</body>
+</html>

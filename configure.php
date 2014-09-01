@@ -20,7 +20,8 @@ $db = DB::getInstance();
 if (!empty($_POST['info']) && is_array($_POST['info'])) {
 	foreach ($_POST['info'] as $key => $val) { // really should be one record only according to current template, but still
 	   $val['id'] = $key;
-	   StepFactory::save(StepFactory::createFromArray($val, array()));
+	   $step = StepFactory::createFromArray($val);
+	   if ($step) $step->save();
 	}
 }
 		
@@ -32,7 +33,8 @@ if (!empty($_POST['deleteStep']) && is_numeric($_POST['deleteStep'])) {
 
 // add new step if submitted
 if (!empty($_POST['infoNew']) && is_array($_POST['infoNew'])) {
-    StepFactory::save(StepFactory::createFromArray($_POST['infoNew'], array()));
+    $step = StepFactory::createFromArray($_POST['infoNew']);
+    $step->save();
 }		
 		
 
@@ -44,7 +46,7 @@ if (!empty($_POST['moveStep'])) {
 	if ($stepId && $newParentId) {
 	    $step = StepFactory::fetch($stepId);
 	    $step->setParentId($newParentId);
-	    StepFactory::save($step);
+	    $step->save();
 	}
 }
 		

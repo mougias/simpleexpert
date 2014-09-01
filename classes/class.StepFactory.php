@@ -65,76 +65,7 @@ class StepFactory
     }
     
     
-    /**
-     * saves a step back into the database
-     * @param Step $step
-     */
-    static public function save(Step $step) {
-        //if (!($step instanceof Step))
-            //throw new Exception('StepFactory::save expects object ot class Step');
-        
-        $db = DB::getInstance();
-        
-        if (!empty($step->getId())) {
-            $query = $db->prepare('UPDATE debugger_step SET'.
-                ' parent_id = ?,'.
-                ' name = ?,'.
-                ' type = ?,'.
-                ' system = ?,'.
-                ' method = ?,'.
-                ' jump_id = ?,'.
-                ' condition_variable_name = ?,'.
-                ' condition_variable_value = ?,'.
-                ' evaluate_expression = ?,'.
-                ' evaluate_variable_name = ?'.
-                ' WHERE id = ?');
-        
-            list($id, $name, $type, $system, $method, $jumpId, $conditionVariableName, $conditionVariableValue, $evaluateExpression, $evaluateVariableName, $parentId)
-                    = array( $step->getId(),
-                            $step->getName(),
-                            $step->getType(),
-                            $step->getSystem(),
-                            $step->getMethod(),
-                            $step->getJumpId(),
-                            $step->getConditionVariableName(),
-                            $step->getConditionVariableValue(),
-                            $step->getEvaluateExpression(),
-                            $step->getEvaluateVariableName(),
-                            $step->getParentId()
-                        );
-            
-            $query->bind_param('isississssi', $parentId, $name, $type, $system, $method, $jumpId, $conditionVariableName, $conditionVariableValue, $evaluateExpression, $evaluateVariableName, $id);
-            $query->execute();
-        }
-        // new step
-        else {
-            $query = $db->prepare('INSERT INTO debugger_step ('.
-                'parent_id, name, type, system, method, jump_id, condition_variable_name,'.
-                'condition_variable_value, evaluate_expression, evaluate_variable_name)'.
-                'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-        
-            list($id, $name, $type, $system, $method, $jumpId, $conditionVariableName, $conditionVariableValue, $evaluateExpression, $evaluateVariableName)
-                    = array( $step->getParentId(),
-                            $step->getName(),
-                            $step->getType(),
-                            $step->getSystem(),
-                            $step->getMethod(),
-                            $step->getJumpId(),
-                            $step->getConditionVariableName(),
-                            $step->getConditionVariableValue(),
-                            $step->getEvaluateExpression(),
-                            $step->getEvaluateVariableName()
-                        );
-            
-            $query->bind_param('isississss', $id, $name, $type, $system, $method, $jumpId, $conditionVariableName, $conditionVariableValue, $evaluateExpression, $evaluateVariableName);
-            $query->execute();
-        
-            if (!empty($db->insert_id))
-                return $db->insert_id;
-        }
-    }
-    
-    
+  
     
     /**
      * creates a step object from an array
@@ -142,9 +73,13 @@ class StepFactory
      * @throws Exception
      */
     static public function createFromArray(array $step) {
-        if (!is_array($step))
-            throw new Exception ('StepFactory::createFromArray expects array as a parameter');
-        
+        if (isset($step['parentId'])) $step['parent_id']= $step['parentId'];
+        if (isset($step['jumpId'])) $step['jump_id']= $step['jumpId'];
+        if (isset($step['conditionVariableName'])) $step['condition_variable_name'] = $step['conditionVariableName'];
+        if (isset($step['conditionVariableValue'])) $step['condition_variable_value'] = $step['conditionVariableName'];
+        if (isset($step['evaluateExpression'])) $step['evaluate_expression'] = $step['evaluateExpression'];
+        if (isset($step['evaluateVariableName'])) $step['evaluate_variable_name'] = $step['evaluateVariableName'];
+                
         return new Step($step);
     }
 }

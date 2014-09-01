@@ -155,4 +155,73 @@ class Step
         return false;
     }
     
+    
+    
+    /**
+     * saves a step back into the database
+     * @param Step $step
+     */
+    public function save() {
+    
+        $db = DB::getInstance();
+    
+        if (!empty($this->getId())) {
+            $query = $db->prepare('UPDATE debugger_step SET'.
+                ' parent_id = ?,'.
+                ' name = ?,'.
+                ' type = ?,'.
+                ' system = ?,'.
+                ' method = ?,'.
+                ' jump_id = ?,'.
+                ' condition_variable_name = ?,'.
+                ' condition_variable_value = ?,'.
+                ' evaluate_expression = ?,'.
+                ' evaluate_variable_name = ?'.
+                ' WHERE id = ?');
+    
+            list($id, $name, $type, $system, $method, $jumpId, $conditionVariableName, $conditionVariableValue, $evaluateExpression, $evaluateVariableName, $parentId)
+            = array( $this->getId(),
+                $this->getName(),
+                $this->getType(),
+                $this->getSystem(),
+                $this->getMethod(),
+                $this->getJumpId(),
+                $this->getConditionVariableName(),
+                $this->getConditionVariableValue(),
+                $this->getEvaluateExpression(),
+                $this->getEvaluateVariableName(),
+                $this->getParentId()
+            );
+    
+            $query->bind_param('isississssi', $parentId, $name, $type, $system, $method, $jumpId, $conditionVariableName, $conditionVariableValue, $evaluateExpression, $evaluateVariableName, $id);
+            $query->execute();
+        }
+        // new step
+        else {
+            $query = $db->prepare('INSERT INTO debugger_step ('.
+                'parent_id, name, type, system, method, jump_id, condition_variable_name,'.
+                'condition_variable_value, evaluate_expression, evaluate_variable_name)'.
+                'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    
+            list($id, $name, $type, $system, $method, $jumpId, $conditionVariableName, $conditionVariableValue, $evaluateExpression, $evaluateVariableName)
+            = array( $this->getParentId(),
+                $this->getName(),
+                $this->getType(),
+                $this->getSystem(),
+                $this->getMethod(),
+                $this->getJumpId(),
+                $this->getConditionVariableName(),
+                $this->getConditionVariableValue(),
+                $this->getEvaluateExpression(),
+                $this->getEvaluateVariableName()
+            );
+    
+            $query->bind_param('isississss', $id, $name, $type, $system, $method, $jumpId, $conditionVariableName, $conditionVariableValue, $evaluateExpression, $evaluateVariableName);
+            $query->execute();
+    
+            if (!empty($db->insert_id))
+                return $db->insert_id;
+        }
+    }    
+    
 }

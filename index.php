@@ -14,5 +14,6 @@ if (empty($_POST['user_input']))
     require('tmpl'.DS.'start.php');
 else {
     $debugger = new Debugger($_POST['user_input']);
+    require('tmpl'.DS.'run.php');
     $debugger->run();
 } 

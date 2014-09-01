@@ -1,15 +1,14 @@
 <?php 
 
 
-class DebuggerTestSystem {
+class DebuggerTestSystem
+{
     
     
-    public function getInputType(&$data) {
+    public static function getInputType(&$data)
+    {
         if ($data['USER_INPUT'])
-            $data['NUMBER_TYPE'] = 'Yes';
-        
+            $data['NUMBER_TYPE'] = 'TEST_NUMBER';
     }
     
 }
-
-?>

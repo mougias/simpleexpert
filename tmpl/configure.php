@@ -111,7 +111,7 @@ function displayStepDiv(Step $step)
 						<tr id=\"evaluateExpression{$step->getId()}\">
                             <td>Evaluate Expression:</td>
 							<td>
-                                <input type=\"textbox\" name=\"info[{$step->getId()}][evaluateExpression]\" value=\"{$step->getEvaluateExpression()}\" size=60 />
+                                <input type=\"textbox\" name=\"info[{$step->getId()}][evaluateExpression]\" value=\"".htmlentities($step->getEvaluateExpression())."\" size=60 />
 							</td>
 						</tr>
 						<tr id=\"evaluateVariable{$step->getId()}\">
@@ -124,6 +124,7 @@ function displayStepDiv(Step $step)
 							<td colspan=\"2\">&nbsp;</td>
 						</tr>
 						<tr>
+                            <input type=\"hidden\" name=\"info[{$step->getId()}][parentId]\" value=\"{$step->getParentId()}\" />
 							<td colspan=\"2\"><input type=\"submit\" value=\"Update\" /></td>
 						</tr>
 					</table>
@@ -200,7 +201,7 @@ function displayStepDiv(Step $step)
                             <select name="infoNew[system]" onchange="updateMethods(this.value, 'New')">
                                 <option value="" />
                                 <?php if (isset($vars['systems']) && is_array($vars['systems'])) foreach ($vars['systems'] as $key => $val) :?>
-                                    <option value="<?=$va['name']?>"><?=$val['name']?></option>
+                                    <option value="<?=$val['name']?>"><?=$val['name']?></option>
                                 <?php endforeach;?>
                             </select>
                         </td>

@@ -30,22 +30,20 @@ class Debugger
 		if (empty($userInput))
 			return;
 		
+		// include all systems
+		foreach (glob('systems'.DS.'*.php') as $filename)
+		{
+		    include $filename;
+		}
+		
 		// init data array, put USER_INPUT in
 		$this->vars['USER_INPUT'] = $userInput;
 
+		// fetch steps tree from db
+		$this->steps = StepFactory::fetchTree();
+		
 		// mark that we can now run
 		$this->canRun = true;
-		
-
-		// fetch steps from DB
-		$db = DB::getInstance();
-		$result = $db->query('SELECT id, parent_id, name, type, system, method, jump_id, condition_variable_name, condition_variable_Value, assert_expression, assert_variable_name FROM debugger_step');
-		while ($arr = $result->fetch_assoc())
-		    $this->steps[] = StepFactory::createFromArray($arr);
-
-		if (!$this->steps) {
-		    throw new Exception('Could not fetch steps from the database');
-		}
 	}
 	
 
@@ -63,14 +61,14 @@ class Debugger
 		$currentStep = $this->_getNextStep(null); // fetch next step
 		
 		$count = 0;
-		while ($currentStep && $count < MAX_STEPS) {
+		while ($currentStep && $count < self::MAX_STEPS) {
 			$nextStep = null;
 			$prevData = $this->vars;
 			// process step
 			$output = '';
 			ob_start();
 			switch ($currentStep->getType()) {
-				case STEP_TYPE_SYSTEM:
+				case self::STEP_TYPE_SYSTEM:
 				    list($system, $method) = array($currentStep->getSystem(), $currentStep->getMethod());
 					if (method_exists($system, $method))
 						$system::$method($this->vars);
@@ -79,27 +77,23 @@ class Debugger
 						throw new Exception('Step '.$currentStep->getId().' requesting non-callable system/method');
 					}
 					// get next step
-					$nextStep = getNextStep($currentStep->getId());
+					$nextStep = $this->_getNextStep($currentStep);
 					break;
-				case STEP_TYPE_JUMP:
+				case self::STEP_TYPE_JUMP:
 					// this will force the step marked to execute even if its conditions don't match current data
 					// need to think about this, maybe it shouldn't be like that
-					echo 'Jumping to step '.$currentStep['jumpId']."\n";
-					$nextStep = getStepById($currentStep['jumpId'], $stepsArray);
-					if (!$currentStep)
-						echo "Step not found.  Check your configuration\n";
-					break;
-				case STEP_TYPE_EVALUATE:
-					// get next step
-					$nextStep = getNextStep($currentStep['id'], $stepsArray, $data);
+					throw new exception ('Not implemented yet.');
+				    break;
+				case self::STEP_TYPE_EVALUATE:
+				    // implement this.  try Eval Math from phpclasses
+					throw new exception ('Not implemented yet.');
 					break;
 			}
 			$output = ob_get_clean();
 			$output = nl2br($output);
-			ob_end_clean();
 		
 			// send output
-			sendMessage($currentStep['id'], $currentStep['name'], $output, $prevData);
+			$this->_sendMessage($currentStep->getId(), $currentStep->getName(), $output, $prevData);
 		
 			$currentStep = $nextStep;
 			$count++;
@@ -114,13 +108,19 @@ class Debugger
 	 * @param int $currentStep
 	 * @return int
 	 */
-	private function _getNextStep($currentStep)
+	private function _getNextStep(Step $currentStep = null)
 	{
-		foreach ($this->steps as $step)
-		    if ($step->getParentId() == $currentStep)
-		        if (empty($step->getConditionVariableName()) || $this->vars[$step->getConditionVariableName()] == $step->getConditionVariableValue())
+        if (!$currentStep) {
+            // first run, scan top level steps
+            foreach ($this->steps as $step)
+                if (empty($step->getConditionVariableName()) || $this->vars[$step->getConditionVariableName()] == $step->getConditionVariableValue())
                     return $step;
-
+        }
+        else {
+            foreach ($currentStep->getChildren() as $step)
+                if (empty($step->getConditionVariableName()) || $this->vars[$step->getConditionVariableName()] == $step->getConditionVariableValue())
+                    return $step;
+        }
 		return null;
 	}
 	
@@ -157,9 +157,13 @@ class Debugger
 		$outputJS .= '</div>'."');";
 		$outputJS .= '$("#output'.$id.'").hide();';
 
+		echo '<script type="text/javascript">';
 		echo $stringJS."\n\n";
 		echo $dataJS."\n\n";
 		echo $outputJS."\n\n";
+		echo '</script>';
+		
+		flush();
 
 	}
 
